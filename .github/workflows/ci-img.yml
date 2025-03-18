@@ -1,9 +1,9 @@
-name: 'build and deploy docker image'
+name: 'build and deploy production'
 
 on:
   push:
     tags:
-      - '*'  # Trigger เมื่อ push tag ใด ๆ
+      - '*'
 
 jobs:
   release-docker-image-job:
@@ -24,8 +24,30 @@ jobs:
       - name: Build and push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
-          image: my-bmi-img  # ไม่ต้องใส่ naruapon ซ้ำ
+          image: my-bmi-app
           registry: ghcr.io/thudlender
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           tags: ${{ env.TAG_NAME }}
+
+  auto-deploy-docker-job:
+    needs: release-docker-image-job
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_NAME: 'my-bmi-app'
+    steps:
+      - name: Extract tag name again (ensure env variable is set)
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy via SSH with Password
+        run: |
+          sshpass -p '&S/Cz.tu-^Q6DW' ssh -o StrictHostKeyChecking=no root@167.99.74.98 << 'EOF'
+            docker logout ghcr.io
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker rm -f ${{ env.CONTAINER_NAME }} || true
+            docker pull ghcr.io/thudlender/my-bmi-app:${{ env.TAG_NAME }}
+            docker run --restart=always -d --pull always --name ${{ env.CONTAINER_NAME }} -p 5555:80 ghcr.io/thudlender/my-bmi-app:${{ env.TAG_NAME }}
+          EOF

@@ -19,9 +19,9 @@ function BMICalculatorComponent() {
 
   return (
     <div>
-      <h1>BMI Calculator</h1>
+      <h1>BMI Calculator 027</h1>
       <div>
-        <label>Weight (kg):</label>
+        <label>Weight trigger (kg):</label>
         <input
           type="number"
           value={weight}
