@@ -44,10 +44,10 @@ jobs:
 
       - name: Deploy via SSH with Password
         run: |
-          sshpass -p '&S/Cz.tu-^Q6DW' ssh -o StrictHostKeyChecking=no root@167.99.74.98 << 'EOF'
+          sshpass -p '${{ secrets.SSH_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@167.99.74.98 << 'EOF'
             docker logout ghcr.io
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u thudlender --password-stdin
             docker rm -f ${{ env.CONTAINER_NAME }} || true
             docker pull ghcr.io/thudlender/my-bmi-app:${{ env.TAG_NAME }}
-            docker run --restart=always -d --pull always --name ${{ env.CONTAINER_NAME }} -p 5027:80 ghcr.io/thudlender/my-bmi-app:${{ env.TAG_NAME }}
+            docker run --restart=always -d --pull always --name ${{ env.CONTAINER_NAME }} -p 9027:80 ghcr.io/thudlender/my-bmi-app:${{ env.TAG_NAME }}
           EOF
